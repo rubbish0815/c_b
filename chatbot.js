@@ -189,7 +189,8 @@ eventBus.on('text', function(from_address, text){
 	switch (text) {
 	case 'to->':
 		break;
-	case '<-back'
+	case '<-back':
+		break;
 	default:
 		throw Error("unknown state: "+state);
 	}
