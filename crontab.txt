@@ -1,0 +1,1 @@
+*/5 * * * * cd byteball-chatbot; node check_daemon.js 1>>~/.config/byteball-chatbot/check_daemon.log 2>>~/.config/byteball-chatbot/check_daemon.err

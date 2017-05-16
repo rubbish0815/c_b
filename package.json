@@ -1,0 +1,27 @@
+{
+  "name": "byteball-chatbot",
+  "description": "Byteball Chatbot",
+  "author": "rubbish0815",
+  "version": "0.1.0",
+  "main": "start.js",
+  "keywords": [
+    "byteball",
+    "chatbot"
+  ],
+  "license": "MIT",
+  "repository": {
+    "url": "git://github.com/rubbish0815/c_b.git",
+    "type": "git"
+  },
+  "bugs": {
+    "url": "https://github.com/rubbish0815/c_b/issues"
+  },
+  "browser": {
+    "request": "browser-request",
+    "secp256k1": "secp256k1/js"
+  },
+  "dependencies": {
+    "bitcore-lib": "^0.13.14",
+    "byteballcore": "git+https://github.com/byteball/byteballcore.git"
+  }
+}
