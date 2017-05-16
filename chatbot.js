@@ -1,5 +1,6 @@
 /*jslint node: true */
 "use strict";
+var util = require('util');
 var conf = require('byteballcore/conf.js');
 var device = require('byteballcore/device.js');
 var walletDefinedByKeys = require('byteballcore/wallet_defined_by_keys.js');
