@@ -16,11 +16,17 @@ var KEYS_FILENAME = appDataDir + '/' + conf.KEYS_FILENAME;
 var wallet;
 
 function replaceConsoleLog(){
-	var clog = console.log;
+	var log_filename = conf.LOG_FILENAME || (appDataDir + '/log.txt');
+	var writeStream = fs.createWriteStream(log_filename);
+	console.log('---------------');
+	console.log('From this point, output will be redirected to '+log_filename);
+	console.log("To release the terminal, type Ctrl-Z, then 'bg'");
 	console.log = function(){
-		Array.prototype.unshift.call(arguments, Date().toString()+':');
-		clog.apply(null, arguments);
-	}
+		writeStream.write(Date().toString()+': ');
+		writeStream.write(util.format.apply(null, arguments) + '\n');
+	};
+	console.warn = console.log;
+	console.info = console.log;
 }
 
 function readKeys(onDone){
