@@ -9,6 +9,7 @@ var fs = require('fs');
 var db = require('byteballcore/db.js');
 var eventBus = require('byteballcore/event_bus.js');
 var desktopApp = require('byteballcore/desktop_app.js');
+var cb_db = require('./cb_db.js');
 require('byteballcore/wallet.js'); // we don't need any of its functions but it listens for hub/* messages
 
 var appDataDir = desktopApp.getAppDataDir();
@@ -77,77 +78,10 @@ function handleNoWallet(from_address){
 		device.sendMessageToDevice(from_address, 'text', "Chatbot is not set up yet, try again later");
 }
 
-
-//*******************************************************************************
-
-function readCurrentState(device_address, handleState){
-	db.query("SELECT state_id, `order`, step FROM states WHERE device_address=? ORDER BY state_id DESC LIMIT 1", [device_address], function(rows){
-		if (rows.length === 0)
-			throw Error('no current state');
-		var state = rows[0];
-		state.order = JSON.parse(state.order);
-		handleState(state);
-	});
+function getContent(device_address, from, to) {
+	var content = {};
+	
 }
-
-function createNewSession(device_address, onDone){
-	var step = 'waiting_for_choice_of_pizza';
-	db.query("INSERT INTO states (device_address, step, `order`) VALUES (?,?,'{}')", [device_address, step], function(){
-		if (onDone)
-			onDone();
-	});
-}
-
-function updateState(state, onDone){
-	db.query(
-		"UPDATE states SET step=?, `order`=?, amount=?, address=? WHERE state_id=?", 
-		[state.step, JSON.stringify(state.order), state.amount, state.address, state.state_id], 
-		function(){
-			if (onDone)
-				onDone();
-		}
-	);
-}
-
-function cancelState(state){
-	db.query("UPDATE states SET cancel_date="+db.getNow()+" WHERE state_id=?", [state.state_id]);
-}
-
-//*******************************************************************************
-
-var arrYesNoAnswers = {
-		yes: 'Yes',
-		no: 'No'
-	}
-
-function getYesNoList(){
-	var arrItems = [];
-	for (var code in arrYesNoAnswers)
-		arrItems.push('['+arrYesNoAnswers[code]+'](command:'+code+')');
-		return arrItems.join("\t");
-}
-
-function readMenuList(parent){
-	var arrMenu= [];
-	db.query("SELECT * FROM menus WHERE parent = ? AND visible NOT null", parent, function(rows){
-		for (var i = 0; i < rows.length; i++) {
-			var object = rows[i];
-			arrMenu.push('[->'+object.name+'](command:to->'+object.menu_id+')');
-		}
-		return arrMenu.join("\t");
-	});
-}
-
-function readMenuListHere(menu_id){
-	var arrMenu= [];
-	db.query("SELECT * FROM menus WHERE menu_id = ? AND visible NOT null", menu_id, function(rows){
-		var object = rows[0];
-		arrMenu.push('[->'+object.name+'](command:to->'+object.menu_id+')');
-		return arrMenu.join("\t");
-	});
-}
-
-replaceConsoleLog();
 
 
 if (!conf.permanent_paring_secret)
@@ -176,14 +110,15 @@ readKeys(function(devicePrivKey, deviceTempPrivKey, devicePrevTempPrivKey){
 	var my_device_pubkey = device.getMyDevicePubKey();
 	console.log("my device pubkey: "+my_device_pubkey);
 	console.log("my pairing code: "+my_device_pubkey+"@"+conf.hub+"#"+conf.permanent_paring_secret);
+	replaceConsoleLog();
 });
 
 
 eventBus.on('paired', function(from_address){
 	if (!wallet)
 		return handleNoWallet(from_address);
-	createNewSession(from_address, function(){
-		device.sendMessageToDevice(from_address, 'text', "Hi!\n"+readMenuListHere(0)+"\n"+"Where do you want to go?:\n"+getMenuList(0+1)+"\n");
+	cb_db.createNewSession(from_address, function(){
+		device.sendMessageToDevice(from_address, 'text', getContent(0)+"\n");
 	});
 });
 
@@ -192,11 +127,10 @@ eventBus.on('text', function(from_address, text){
 		return handleNoWallet(from_address);
 	text = text.trim().toLowerCase();
 	console.log(text);
-	switch (text) {
+	var split = str.split("->", 2);
+	switch (split[0]) {
 	case 'to->':
-		break;
-	case '<-back':
-		break;
+		device.sendMessageToDevice(from_address, 'text', getContent(split[1]));
 	default:
 		throw Error("unknown state: "+state);
 	}
