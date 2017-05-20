@@ -135,9 +135,3 @@ eventBus.on('text', function(from_address, text){
 		throw Error("unknown state: "+state);
 	}
 });
-
-
-
-
-
-
