@@ -47,15 +47,17 @@ function readNavItem(navItemId, handleNavItem){
 
 
 function readNavItemContentList(navItemId){
-	var arrContent = {};
-	db.query("SELECT content FROM cb_navitemcontent INNER JOIN cb_content WHERE navitem_id = ? AND begda <= Date() AND endda >= Date()", 
-			navItemId, function(rows){
+	var arrContent = [];
+	db.query("SELECT content FROM cb_navitemcontent a\n\
+			  INNER JOIN cb_content b ON a.content_id = b.id \n\
+			  WHERE a.navitem_id = ? AND a.begda <= Date() AND a.endda >= Date()", 
+			[navItemId], function(rows){
 		if (rows.length === 0)
 			throw Error("no Content available");
 		for (var i = 0; i < rows.length; i++) {
 			arrContent.push(rows[i].content+"\n");
-			return arrContent.join("\n");
-		}
+		};
+		return arrContent.join("\n");
 	});
 }
 

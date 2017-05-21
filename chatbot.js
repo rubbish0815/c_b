@@ -17,6 +17,8 @@ var KEYS_FILENAME = appDataDir + '/' + conf.KEYS_FILENAME;
 
 var wallet;
 
+var CMDTO = 'To->';
+
 function replaceConsoleLog(){
 	var log_filename = conf.LOG_FILENAME || (appDataDir + '/log.txt');
 	var writeStream = fs.createWriteStream(log_filename);
@@ -79,14 +81,16 @@ function handleNoWallet(from_address){
 }
 
 function getContent(device_address, from, to) {
-	var arrNavItems = {};
+	var arrNavItems = [];
 	cb_db.readNavItemListForParent(to, function(rows){
 		for (var object in rows) {
-			arrNavItems.push('['+rows[object].name+'](command:'+rows[object].id+')');
+			arrNavItems.push('['+rows[object].name+'](command:'+CMDTO+rows[object].id+')');
 		}
 		arrNavItems.join("\t");
 	});
-	var arrContent = cb_db.readNavItemContentList(to);
+	var arrNavContent = cb_db.readNavItemContentList(to);
+	var arrContent = arrNavItems.extend(arrNavContent);
+	return arrContent;
 }
 
 
@@ -118,6 +122,12 @@ readKeys(function(devicePrivKey, deviceTempPrivKey, devicePrevTempPrivKey){
 	console.log("my pairing code: "+my_device_pubkey+"@"+conf.hub+"#"+conf.permanent_paring_secret);
 	replaceConsoleLog();
 });
+
+
+cb_db.createNewSession('ABCD', function(){
+	device.sendMessageToDevice('ABCD', 'text', getContent('ABCD', 0, 1)+"\n");
+});
+
 
 
 eventBus.on('paired', function(from_address){
