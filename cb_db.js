@@ -31,31 +31,30 @@ function updateSession(session, onDone){
 function readNavItemListForParent(parent, handleNavItemList){
 	db.query("SELECT * FROM cb_navitems WHERE parent = ? AND begda <= Date() AND endda >= Date()", parent, function(rows){
 		if (rows.length === 0)
-			throw Error('no NavItems available);
+			throw Error("no NavItems available");
 		handleNavItemList(rows);
 	});
 }
 
 function readNavItem(navItemId, handleNavItem){
-	var arrMenu= [];
 	db.query("SELECT * FROM cb_navitems WHERE id = ? AND begda <= Date() AND endda >= Date()", navItemId, function(rows){
 		if (rows.length === 0)
-			throw Error('no NavItem available);
+			throw Error("no NavItem available");
 		var navItem = rows[0];
 		handleNavItem(navItem);
 	});
 }
 
 
-function readNavItemContentList(navItemId, handleNavItemContentList){
-	var arrContent = {}
+function readNavItemContentList(navItemId){
+	var arrContent = {};
 	db.query("SELECT content FROM cb_navitemcontent INNER JOIN cb_content WHERE navitem_id = ? AND begda <= Date() AND endda >= Date()", 
 			navItemId, function(rows){
 		if (rows.length === 0)
-			throw Error('no NavItems available);
+			throw Error("no Content available");
 		for (var i = 0; i < rows.length; i++) {
 			arrContent.push(rows[i].content+"\n");
-			return arrItems.join("\n");
+			return arrContent.join("\n");
 		}
 	});
 }
@@ -67,4 +66,3 @@ module.exports.updateSession = updateSession;
 module.exports.readNavItemListForParent = readNavItemListForParent;
 module.exports.readNavItem = readNavItem;
 module.exports.readNavItemContentList = readNavItemContentList;
-

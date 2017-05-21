@@ -79,8 +79,14 @@ function handleNoWallet(from_address){
 }
 
 function getContent(device_address, from, to) {
-	var content = {};
-	
+	var arrNavItems = {};
+	cb_db.readNavItemListForParent(to, function(rows){
+		for (var object in rows) {
+			arrNavItems.push('['+rows[object].name+'](command:'+rows[object].id+')');
+		}
+		arrNavItems.join("\t");
+	});
+	var arrContent = cb_db.readNavItemContentList(to);
 }
 
 
