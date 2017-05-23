@@ -28,11 +28,14 @@ function updateSession(session, onDone){
 	);
 }
 
-function readNavItemListForParent(parent, handleNavItemList){
+function readNavItemListForParent(parent, handleNavItemListForParent){
+	var arrNavItems = [];
 	db.query("SELECT * FROM cb_navitems WHERE parent = ? AND begda <= Date() AND endda >= Date()", parent, function(rows){
-		if (rows.length === 0)
-			throw Error("no NavItems available");
-		handleNavItemList(rows);
+		for (var object in rows) {
+			arrNavItems.push('['+rows[object].name+'](command:'+'To->'+rows[object].id+')');
+		}
+		arrNavItems.join("\t");
+		return handleNavItemListForParent(arrNavItems);
 	});
 }
 
@@ -46,21 +49,18 @@ function readNavItem(navItemId, handleNavItem){
 }
 
 
-function readNavItemContentList(navItemId){
+function readNavItemContentList(navItemId, handleNavItemContentList){
 	var arrContent = [];
 	db.query("SELECT content FROM cb_navitemcontent a\n\
 			  INNER JOIN cb_content b ON a.content_id = b.id \n\
 			  WHERE a.navitem_id = ? AND a.begda <= Date() AND a.endda >= Date()", 
 			[navItemId], function(rows){
-		if (rows.length === 0)
-			throw Error("no Content available");
 		for (var i = 0; i < rows.length; i++) {
 			arrContent.push(rows[i].content+"\n");
 		};
-		return arrContent.join("\n");
+		return handleNavItemContentList(arrContent);
 	});
 }
-
 
 module.exports.readCurrentSession = readCurrentSession;
 module.exports.createNewSession = createNewSession;

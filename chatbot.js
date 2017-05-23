@@ -29,8 +29,8 @@ function replaceConsoleLog(){
 		writeStream.write(Date().toString()+': ');
 		writeStream.write(util.format.apply(null, arguments) + '\n');
 	};
-	console.warn = console.log;
-	console.info = console.log;
+//	console.warn = console.log;
+//	console.info = console.log;
 }
 
 function readKeys(onDone){
@@ -80,17 +80,18 @@ function handleNoWallet(from_address){
 		device.sendMessageToDevice(from_address, 'text', "Chatbot is not set up yet, try again later");
 }
 
-function getContent(device_address, to) {
-	var arrNavItems = [];
-	cb_db.readNavItemListForParent(to, function(rows){
-		for (var object in rows) {
-			arrNavItems.push('['+rows[object].name+'](command:'+CMDTO+rows[object].id+')');
-		}
-		arrNavItems.join("\t");
+function getContent(device_address, to, onDone) {
+	var arrContent = [];
+	var arrNavContent = [];
+	cb_db.readNavItemListForParent(to, function(arrNavItemList){
+		arrContent = !arrNavItemList ? arrContent : arrNavItemList;		
+		cb_db.readNavItemContentList(to, function(arrNavItemContent) {
+			for (var i = 0; i < arrNavItemContent.length; i++) {
+				arrContent.push(arrNavItemContent[i]);
+			}
+			onDone(arrContent.join("\n"));
+		})
 	});
-	var arrNavContent = cb_db.readNavItemContentList(to);
-	var arrContent = arrNavItems.extend(arrNavContent);
-	return arrContent;
 }
 
 
@@ -129,7 +130,10 @@ eventBus.on('paired', function(from_address){
 	if (!wallet)
 		return handleNoWallet(from_address);
 	cb_db.createNewSession(from_address, function(){
-		device.sendMessageToDevice(from_address, 'text', getContent(from_address, 1)+"\n");
+		getContent(from_address, 1, function(arrContent) {
+			device.sendMessageToDevice(from_address, 'text', arrContent+"\n");			
+		})
+
 	});
 });
 
@@ -137,12 +141,15 @@ eventBus.on('text', function(from_address, text){
 	if (!wallet)
 		return handleNoWallet(from_address);
 	text = text.trim().toLowerCase();
-	console.log(text);
+	console.info(from_address+'**'+text);
 	var split = text.split("->", 2);
 	switch (split[0]) {
-	case 'to->':
-		device.sendMessageToDevice(from_address, 'text', getContent(from_address, split[1]));
+	case 'to':
+		getContent(from_address, split[1], function(response) {
+			device.sendMessageToDevice(from_address, 'text', response );
+		})
+		break;
 	default:
-		device.sendMessageToDevice(from_address, 'text', split );
+		device.sendMessageToDevice(from_address, 'text', "Command "+text+" not available." );
 	}
 });
