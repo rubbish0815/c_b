@@ -138,7 +138,7 @@ eventBus.on('text', function(from_address, text){
 		return handleNoWallet(from_address);
 	text = text.trim().toLowerCase();
 	console.log(text);
-	var split = str.split("->", 2);
+	var split = text.split("->", 2);
 	switch (split[0]) {
 	case 'to->':
 		device.sendMessageToDevice(from_address, 'text', getContent(from_address, split[1]));
