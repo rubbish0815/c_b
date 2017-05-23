@@ -143,6 +143,6 @@ eventBus.on('text', function(from_address, text){
 	case 'to->':
 		device.sendMessageToDevice(from_address, 'text', getContent(from_address, split[1]));
 	default:
-		throw Error("unknown state: "+state);
+		throw Error("unknown command");
 	}
 });
