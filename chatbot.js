@@ -80,7 +80,7 @@ function handleNoWallet(from_address){
 		device.sendMessageToDevice(from_address, 'text', "Chatbot is not set up yet, try again later");
 }
 
-function getContent(device_address, from, to) {
+function getContent(device_address, to) {
 	var arrNavItems = [];
 	cb_db.readNavItemListForParent(to, function(rows){
 		for (var object in rows) {
@@ -124,17 +124,12 @@ readKeys(function(devicePrivKey, deviceTempPrivKey, devicePrevTempPrivKey){
 });
 
 
-cb_db.createNewSession('ABCD', function(){
-	device.sendMessageToDevice('ABCD', 'text', getContent('ABCD', 0, 1)+"\n");
-});
-
-
 
 eventBus.on('paired', function(from_address){
 	if (!wallet)
 		return handleNoWallet(from_address);
 	cb_db.createNewSession(from_address, function(){
-		device.sendMessageToDevice(from_address, 'text', getContent(0)+"\n");
+		device.sendMessageToDevice(from_address, 'text', getContent(from_address, 1)+"\n");
 	});
 });
 
@@ -146,7 +141,7 @@ eventBus.on('text', function(from_address, text){
 	var split = str.split("->", 2);
 	switch (split[0]) {
 	case 'to->':
-		device.sendMessageToDevice(from_address, 'text', getContent(split[1]));
+		device.sendMessageToDevice(from_address, 'text', getContent(from_address, split[1]));
 	default:
 		throw Error("unknown state: "+state);
 	}
