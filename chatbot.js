@@ -94,6 +94,31 @@ function getContent(device_address, to, onDone) {
 	});
 }
 
+function getUrl(sUrl, onDone) {
+	var http = require('http');
+
+	var split = sUrl.split("/", 2);
+	var options = {
+		host: split[0],
+		path: '/'+split[1]
+	};
+
+	var callback = function(response) {
+		var str = '';
+
+		//another chunk of data has been recieved, so append it to `str`
+		response.on('data', function (chunk) {
+			str += chunk;
+		});
+
+		//the whole response has been recieved, so we just print it out here
+		response.on('end', function () {
+			onDone(str);
+		});
+	}
+	http.request(options, callback).end();
+}
+
 
 if (!conf.permanent_paring_secret)
 	throw Error('no conf.permanent_paring_secret');
@@ -148,6 +173,11 @@ eventBus.on('text', function(from_address, text){
 		getContent(from_address, split[1], function(response) {
 			device.sendMessageToDevice(from_address, 'text', response );
 		})
+		break;
+	case 'tourl':
+		getUrl(split[1], function(response) {
+			device.sendMessageToDevice(from_address, 'text', response );
+		});
 		break;
 	default:
 		device.sendMessageToDevice(from_address, 'text', "Command "+text+" not available." );
